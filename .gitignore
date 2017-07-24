@@ -102,3 +102,9 @@ ENV/
 
 #Idea
 .idea/
+
+# Mac
+.DS_Store
+license_ms.json
+*.swp
+notebook/
