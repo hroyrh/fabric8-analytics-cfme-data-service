@@ -4,6 +4,16 @@ import tensorflow as tf
 import tflearn
 from sklearn.externals import joblib
 
+from keras.models import Sequential
+from keras.layers import Dense, Activation
+from keras.wrappers.scikit_learn import KerasRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+
+
 import generate_data
 
 def train_model_tensorflow():
@@ -28,12 +38,10 @@ def train_model_tensorflow():
     #Convert the column to string, run one-hot encoding and have it saved as a numpy array
     Y2 = pd.DataFrame(train.iloc[:, 6])
     Y2.worker_memory_threshold = Y2["worker_memory_threshold"].apply(str)
-    Y2 = np.array(pd.get_dummies(Y2))
-    Y2 = np.array(train.iloc[:, 6])   # label: memory threshold
+    Y2 = np.array(pd.get_dummies(Y2))  # label: memory threshold
 
-    # Building deep neural network for memory threshold
-
-    #This code is based on the MLP code available at: https://github.com/tflearn/tflearn/blob/master/examples/images/dnn.py
+    # tensorflow model for memory threshold.
+    # This model uses tflearn API
 
     #There are 6 input features. This need to change based on number of input features
     input_layer = tflearn.input_data(shape=[None, 6])
@@ -56,16 +64,30 @@ def train_model_tensorflow():
 
     # Training
     model_mem_threshold = tflearn.DNN(net, tensorboard_verbose=0)
+    model_mem_threshold.fit(X, Y2, n_epoch=25, show_metric=True, run_id="dense_model")
+
+
+    # tensorflow model for number of workers
+    # this uses keras API
+
+     # create model
+    model_num_workers = Sequential()
+    model_num_workers.add(Dense(6, input_dim=6, kernel_initializer='normal', activation='relu'))
+    model_num_workers.add(Dense(64, kernel_initializer='normal', activation='relu'))
+    model_num_workers.add(Dense(1, kernel_initializer='normal'))
+    # Compile model
+    model_num_workers.compile(loss='mean_squared_error', optimizer='adam')
+    model_num_workers.fit(X, Y1, epochs=25, batch_size=16,verbose=1)
 
     #TODO: Point to note (Need to investigate later):
     # Running this code again and again may result in "list out of index" error.
     # The only way to come out of this seem to be killing the Python session and starting again
-
-    model.fit(X, Y2, n_epoch=25, show_metric=True, run_id="dense_model")
+    # Also, note that both the tensorflow models severely overfit the given data
+    # Need to tune the models to avoid over-fitting
 
     #serialize the models so that it can be used by the REST API
-    joblib.dump(model_mem_threshold, "models/memoryThreshold_tensorflow.pkl")
-    joblib.dump(model_num_workers, "models/numWorkers_tensorflow.pkl")
+    model_mem_threshold.save("models/model_mem_threshold.tflearn")
+    model_num_workers.save("models/model_num_workers.h5")
 
 
 if __name__ == "__main__":

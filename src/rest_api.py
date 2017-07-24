@@ -12,6 +12,14 @@ import sklearn
 from sklearn.externals import joblib
 import pandas as pd
 import os
+from keras.models import Sequential
+from keras.layers import Dense, Activation
+from keras.wrappers.scikit_learn import KerasRegressor
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from keras.models import load_model
 
 
 # Python2.x: Make default encoding as UTF-8
