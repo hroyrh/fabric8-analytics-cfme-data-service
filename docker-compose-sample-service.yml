@@ -14,3 +14,5 @@ services:
       SERVICE_PORT: "6162"
     ports:
       - "6162:6162"
+    labels:
+      kompose.service.expose: "true"
